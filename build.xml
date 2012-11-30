@@ -29,8 +29,16 @@
         </or>
     </condition>
 
+    <condition property="is.utf8">
+        <equals arg1="${file.encoding}" arg2="UTF-8"/>
+    </condition>
+
     <target name="check-java6" unless="is.java6">
         <fail message="Java 6 needed to build DavMail, current version is ${ant.java.version}, check JAVA_HOME"/>
+    </target>
+
+    <target name="check-encoding" unless="is.utf8">
+        <fail message="Please force UTF-8 encoding to build debian package with set ANT_OPTS=-Dfile.encoding=UTF-8"/>
     </target>
 
     <target name="svnrelease" if="is.svn">
@@ -53,7 +61,7 @@
         <property name="release" value="${version}"/>
     </target>
 
-    <target name="init" depends="check-java6, svnrelease, defaultrelease">
+    <target name="init" depends="check-encoding, check-java6, svnrelease, defaultrelease">
         <echo message="Creating DavMail ${release} dist package"/>
         <mkdir dir="target/classes"/>
     </target>
@@ -136,7 +144,7 @@
         <desktopentry
                 toFile="dist/davmail.desktop"
                 name="DavMail"
-                comment="DavMail POP/SMTP/Caldav/LDAP Exchange Gateway"
+                comment="DavMail POP/IMAP/SMTP/Caldav/Carddav/LDAP Exchange Gateway"
                 exec="davmail"
                 icon="/usr/share/davmail/davmail.png"
                 categories="Network;"
@@ -144,7 +152,7 @@
         <deb todir="dist"
              package="davmail"
              section="mail"
-             depends="openjdk-7-jre|openjdk-6-jre|sun-java6-jre,libswt-gtk-3-java|libswt-gtk-3.6-java|libswt-gtk-3.5-java|libswt-gtk-3.4-java">
+             depends="openjdk-7-jre|openjdk-6-jre|sun-java6-jre,libswt-gtk-3-java|libswt-gtk-3.6-java|libswt-gtk-3.5-java|libswt-gtk-3.4-java,libswt-cairo-gtk-3-jni">
             <version upstream="${release}"/>
             <maintainer email="mguessan@free.fr" name="Mickaël Guessant"/>
             <description synopsis="DavMail POP/IMAP/SMTP/Caldav/Carddav/LDAP Exchange Gateway">
@@ -374,7 +382,7 @@
         <antcall target="dist-deb"/>
         <antcall target="dist-rpm"/>
         <antcall target="dist-osx"/>
-        <!-- source package -->
+        <!-- source with binary deps package -->
         <tar tarfile="dist/davmail-src-${release-name}.tgz" compression="gzip" longfile="gnu">
             <tarfileset prefix="davmail-src-${release-name}" dir=".">
                 <include name="**/*"/>
@@ -382,6 +390,29 @@
                 <exclude name="dist/**"/>
                 <exclude name="target/**"/>
                 <exclude name="archive/**"/>
+                <exclude name="user.properties"/>
+            </tarfileset>
+        </tar>
+        <!-- davmail source only package for GNU/Linux distributions -->
+        <tar tarfile="dist/davmail-srconly-${release-name}.tgz" compression="gzip" longfile="gnu">
+            <tarfileset prefix="davmail-${release-name}" dir=".">
+                <include name="**/*"/>
+                <exclude name="build.log"/>
+                <exclude name="dist/**"/>
+                <exclude name="target/**"/>
+                <exclude name="archive/**"/>
+                <exclude name="lib/**"/>
+                <exclude name="libgrowl/**"/>
+                <exclude name="nsis/**"/>
+                <exclude name="svnant/**"/>
+                <exclude name="jsmooth-*/**"/>
+                <exclude name="*.jsmooth"/>
+                <exclude name="user.properties"/>
+                <exclude name="src/winrun4j/**"/>
+                <exclude name="src/osx/**"/>
+                <exclude name="src/osx/**"/>
+                <exclude name="src/contribs/**"/>
+                <exclude name="*.nsi"/>
             </tarfileset>
         </tar>
     </target>
