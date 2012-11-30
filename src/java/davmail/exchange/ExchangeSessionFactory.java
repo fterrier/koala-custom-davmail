@@ -33,6 +33,7 @@ import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -133,7 +134,7 @@ public final class ExchangeSessionFactory {
     	String result = null;
     	try {
 	    	HttpClient client = new DefaultHttpClient();
-	    	HttpGet get = new HttpGet(Settings.getProperty("davmail.rest.url")+'/'+userName+".json");
+	    	HttpGet get = new HttpGet(Settings.getProperty("davmail.rest.url")+'/'+URLEncoder.encode(userName)+".json");
 	    	HttpResponse response = client.execute(get);
 	    	
 	    	BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
@@ -143,6 +144,7 @@ public final class ExchangeSessionFactory {
 	    		JSONParser parser = new JSONParser();
 	    		jsonValue = (JSONObject)parser.parse(reader);
 	    		
+	    		// TODO if user not found jsonValue is null, check and answer appropriately 
 	    		ExchangeSession.LOGGER.debug("Received JSON answer: " + jsonValue.toString());
 				
 	    		boolean confirmed = (Boolean)jsonValue.get("confirmed");
